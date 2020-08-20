@@ -49,10 +49,9 @@ Vagrant.configure("2") do |config|
          fe.vm.provider "virtualbox" do |vb|
             vb.memory = "768"
          end
-         fe.vm.provision "shell", path: "root_ssh.sh"	
-         fe.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/root/.ssh/id_rsa"
-         fe.vm.provision "shell", inline: "chmod 0600 /root/.ssh/id_rsa"
-         fe.vm.provision "shell", inline: "chown root:root /root/.ssh/id_rsa"
+#         fe.vm.provision "shell", path: "root_ssh.sh"	
+         fe.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/insecure_private_key"
+#         fe.vm.provision "shell", inline: "chmod 0600 /vagrant/insecure_private_key"
          fe.vm.provision "shell", path: "fe.sh"	
       end
    end
@@ -69,9 +68,9 @@ Vagrant.configure("2") do |config|
 
       hans.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/insecure_private_key"
       hans.vm.provision "shell", inline: "chmod 0600 /vagrant/insecure_private_key"
-      hans.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/root/.ssh/id_rsa"
-      hans.vm.provision "shell", inline: "chmod 0600 /root/.ssh/id_rsa"
-      hans.vm.provision "shell", inline: "chown root:root /root/.ssh/id_rsa"
+#      hans.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/root/.ssh/id_rsa"
+#      hans.vm.provision "shell", inline: "chmod 0600 /root/.ssh/id_rsa"
+#      hans.vm.provision "shell", inline: "chown root:root /root/.ssh/id_rsa"
       hans.vm.provision "hostmanager" do |hostmanager|
           hostmanager.enabled = true
           hostmanager.manage_host = true 
