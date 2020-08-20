@@ -1,0 +1,128 @@
+---
+# This role installs TeamCity
+
+- name: Create  user
+  user:
+     name: "{{teamcity.os_user_name}}"
+     password: "{{teamcity.os_user_password |  password_hash('sha512') }}"
+     state: present
+     shell: /bin/bash
+     system: yes
+
+- name: Create .ssh dir
+  file:
+    path: "/home/{{teamcity.os_user_name}}/.ssh"
+    owner: "{{teamcity.os_user_name}}"
+    group: "{{teamcity.os_user_name}}"
+    state: directory
+    mode: '0755'
+
+- name: Copy insecure_private_key
+  copy:
+    src: /vagrant/insecure_private_key
+    dest: "/home/{{teamcity.os_user_name}}/.ssh/id_rsa"
+    owner: "{{teamcity.os_user_name}}"
+    group: "{{teamcity.os_user_name}}"
+    mode: '0600'
+  when:
+    -  '"/home/{{teamcity.os_user_name}}/.ssh/id_rsa" is not exists'
+
+- name: Download TC
+  shell: |
+    wget http://download.jetbrains.com/teamcity/TeamCity-2020.1.2.tar.gz
+    tar xzvf TeamCity-2020.1.2.tar.gz  -C /opt/
+    wget https://jdbc.postgresql.org/download/postgresql-42.2.14.jar -P /opt/TeamCity/lib
+  args:
+    warn: no
+  when:
+    -  '"/opt/TeamCity" is not exists'
+    
+- name: change owner and permission to TeamCity dir.
+  file:
+    path: "/opt/TeamCity"
+    owner: "{{teamcity.os_user_name}}"
+    group: "{{teamcity.os_user_name}}"
+    recurse: yes
+    state: directory
+
+- name: TeamCity home dir / config
+  file:
+    path: "/home/{{teamcity.os_user_name}}/.BuildServer/config"
+    owner: "{{teamcity.os_user_name}}"
+    group: "{{teamcity.os_user_name}}"
+    state: directory
+
+- name: TeamCity DB config
+  template: 
+     src: database.properties.j2 
+     dest: "/home/{{teamcity.os_user_name}}/.BuildServer/config/database.properties"
+     owner: "{{teamcity.os_user_name}}"
+     group: "{{teamcity.os_user_name}}"
+
+- name:  TeamCity main config
+  template: 
+     src: main-config.xml.j2
+     dest: "/home/{{teamcity.os_user_name}}/.BuildServer/config/main-config.xml"
+     owner: "{{teamcity.os_user_name}}"
+     group: "{{teamcity.os_user_name}}"
+
+- name: TeamCity home dir /plugins
+  file:
+    path: "/home/{{teamcity.os_user_name}}/.BuildServer/plugins"
+    owner: "{{teamcity.os_user_name}}"
+    group: "{{teamcity.os_user_name}}"
+    state: directory
+
+- name: Download Node plugin
+  get_url:
+    url: https://teamcity.jetbrains.com/guestAuth/repository/download/bt434/3013675:id/teamcity-node-2.0.24.zip
+    dest: "/home/{{teamcity.os_user_name}}/.BuildServer/plugins"
+    owner: "{{teamcity.os_user_name}}"
+    group: "{{teamcity.os_user_name}}"
+    
+- name: Create teamcity service
+  template: src=teamcity.service.j2 dest=/etc/systemd/system/teamcity.service mode=644
+  when:
+    -  '"/etc/systemd/system/teamcity.service" is not exists'
+
+- name: Enable and start teamcity service
+  service:
+    name: teamcity.service
+    enabled: yes
+    state: started
+
+- name: Install of teamcity buildAgent 
+  become: true
+  become_user: "{{teamcity.os_user_name}}"
+  shell: |
+     cd /opt/TeamCity/buildAgent/bin/
+     ./install.sh http://localhost:8111
+  when:
+    -  '"/opt/TeamCity/buildAgent/logs" is not exists'
+
+- name: Create teamcity buildAgent service
+  template: src=tcagent.service.j2 dest=/etc/systemd/system/tcagent.service mode=644
+  when:
+    -  '"/etc/systemd/system/tcagent.service" is not exists'
+  
+- name: Enable and start teamcity agent
+  service:
+    name: tcagent.service
+    enabled: yes
+    state: started
+
+- name: Download Node 
+  get_url:
+    url: https://nodejs.org/dist/v12.18.1/node-v12.18.1-linux-x64.tar.gz
+    dest: "/vagrant"
+
+- name: install Node
+  shell: tar --strip-components 1 -xzvf /vagrant/node-v* -C /usr/local
+  args:
+    warn: no
+
+- name: install ang
+  shell: npm install -g @angular/cli
+  args:
+    warn: no
+

@@ -1,0 +1,15 @@
+[Unit]
+Description=JetBrains TeamCity server
+Requires=network.target
+After=syslog.target network.target
+
+[Service]
+Type=simple
+PIDFile=/opt/TeamCity/logs/teamcity.pid
+ExecStart=/opt/TeamCity/bin/teamcity-server.sh run
+ExecStop=/opt/TeamCity/bin/teamcity-server.sh stop
+User={{teamcity.os_user_name}}
+Group={{teamcity.os_user_name}}
+
+[Install]
+WantedBy=multi-user.target

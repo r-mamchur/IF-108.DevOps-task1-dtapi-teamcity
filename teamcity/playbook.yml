@@ -1,0 +1,40 @@
+---
+- name: trivial playbook to test vagrant
+  hosts: all
+  gather_facts: True
+  become: True
+  tasks:
+    - name: ping
+      ping:
+    - name: inst
+      yum:
+         name: "{{ util }}"
+      vars:
+         util:
+         - mc
+         - wget
+         - unzip
+         - git
+         state: installed
+    - name: vars
+      include_vars:
+        file: conf_vars.yml 
+
+- name: deploy postgres
+  hosts: ts
+  become: true
+  roles:
+    - role: pgdb
+
+- name: Java
+  hosts: ts
+  become: true
+  roles:
+    - role: java
+
+- name: TC server
+  hosts: ts
+  become: true
+  roles:
+    - role: tc_server 
+

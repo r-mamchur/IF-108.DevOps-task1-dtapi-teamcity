@@ -1,0 +1,66 @@
+---
+- name: install PostgreSQL Server
+  yum:
+    name: postgresql-server.x86_64
+    state: installed
+
+- name: Install addons for postgresql configure
+  yum:
+     name: "{{ util }}"
+  vars:
+     util:
+     - python3-psycopg2
+     - python3-libselinux
+     - python3-libsemanage
+     state: installed
+
+- name: Ensure PostgreSQL database is initialized.
+  become: true
+  become_user: postgres
+  command: "initdb -D /var/lib/pgsql/data"
+  when:
+    -  '"/var/lib/pgsql/data/postgresql.conf" is not exists'
+
+#- name: conf connect to db server
+#  lineinfile:
+#     path: /var/lib/pgsql/data/postgresql.conf
+#     line: "listen_addresses = '*'"
+#  notify:
+#     - restart postgresql
+
+- name: Configure authentification on db server
+  postgresql_pg_hba:
+     dest: /var/lib/pgsql/data/pg_hba.conf
+     contype: host
+     source: 127.0.0.1/32
+  notify:
+     - restart postgresql
+
+#- name: SE - allow httpd connect to db
+#  seboolean:
+#     name: httpd_can_network_connect_db
+#     state: yes
+#     persistent: yes
+
+- name: enable and start server
+  service:
+     name: postgresql.service
+     enabled: yes
+     state: started
+
+
+- name: Creating DB schema for TeamCity
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{db.schema}}"
+    encoding: UTF-8
+    template: template0
+
+- name: Creating DB user for TeamCity
+  become: true
+  become_user: postgres
+  postgresql_user:
+    db: "{{db.schema}}"
+    name: "{{db.user}}"
+    password: "{{db.password}}"

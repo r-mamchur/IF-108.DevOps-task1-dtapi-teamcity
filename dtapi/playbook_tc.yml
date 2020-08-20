@@ -1,0 +1,33 @@
+---
+- name: trivial playbook to test vagrant
+  hosts: fes
+  gather_facts: False
+  become: True
+  tasks:
+    - name: unconnect server on balancer
+      shell: ssh -o "StrictHostKeyChecking=no" root@192.168.56.32 echo "disable server fe80/{{inventory_hostname}}" \| socat stdio /var/lib/haproxy/stats
+  
+    - name: download new ver.
+      get_url:
+        url: http://192.168.56.223:8111/guestAuth/repository/download/dtfe_Build/.lastSuccessful/if105.tar.gz
+        dest: "/vagrant"
+        
+    - name: Unarchive 
+      unarchive:
+        src: /vagrant/if105.tar.gz
+        dest: /vagrant
+        remote_src: yes
+
+    - name: Copy FE
+      copy:
+        src: /vagrant/dist/IF105/
+        dest: /var/www/dtapi
+        owner: "apache"
+        group: "apache"
+        force: yes 
+        remote_src: yes
+        mode: '0777'
+
+    - name: connect server on balancer
+      shell: ssh -o "StrictHostKeyChecking=no" root@192.168.56.32 echo "enable server fe80/{{inventory_hostname}}" \| socat stdio /var/lib/haproxy/stats
+                      

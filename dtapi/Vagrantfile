@@ -1,0 +1,96 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+num_of_be = 2
+num_of_fe = 2
+ans_be_group = []
+ans_fe_group = []
+ans_host_var = {}
+
+Vagrant.configure("2") do |config| 
+
+   config.vagrant.host = "windows"
+   config.vm.box_check_update = true
+   config.ssh.insert_key = false
+
+   config.vm.define "my" do |my|
+      my.vm.box = "centos/8"
+      my.vm.hostname = 'my'
+      work_tmp = my.vm.network "private_network", ip: "192.168.56.31"
+      my.vm.provider "virtualbox" do |vb|
+         vb.memory = "768"
+      end
+      ans_host_var.store("my", {"ansible_host" => work_tmp[1][:ip] } )
+      my.vm.provision "shell", path: "root_ssh.sh"	
+      my.vm.provision "shell", path: "db.sh"	
+   end
+
+   (1..num_of_be).each do |i|
+      config.vm.define "be#{i}" do |be|
+         be.vm.box = "centos/7"
+         be.vm.hostname = "be#{i}"
+         work_tmp = be.vm.network "private_network", ip: "192.168.56.11#{i}"
+         ans_host_var.store("be#{i}", {"ansible_host" => "#{work_tmp[1][:ip]}"} )
+         ans_be_group << "be#{i}"
+         be.vm.provider "virtualbox" do |vb|
+            vb.memory = "768"
+         end
+         be.vm.provision "shell", path: "root_ssh.sh"	
+         be.vm.provision "shell", path: "be.sh"	
+      end
+   end
+
+   (1..num_of_fe).each do |i|
+      config.vm.define "fe#{i}" do |fe|
+         fe.vm.box = "centos/7"
+         fe.vm.hostname = "fe#{i}"
+         work_tmp =fe.vm.network "private_network", ip: "192.168.56.12#{i}"
+         ans_host_var.store("fe#{i}", {"ansible_host" => "#{work_tmp[1][:ip]}"} )
+         ans_fe_group << "fe#{i}"
+         fe.vm.provider "virtualbox" do |vb|
+            vb.memory = "768"
+         end
+         fe.vm.provision "shell", path: "root_ssh.sh"	
+         fe.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/root/.ssh/id_rsa"
+         fe.vm.provision "shell", inline: "chmod 0600 /root/.ssh/id_rsa"
+         fe.vm.provision "shell", inline: "chown root:root /root/.ssh/id_rsa"
+         fe.vm.provision "shell", path: "fe.sh"	
+      end
+   end
+
+   config.vm.define "hans" do |hans|
+      hans.vm.box = "centos/7"
+      hans.vm.hostname = 'hans'
+      hans.vm.network "private_network", ip: "192.168.56.32"
+      hans.vm.provider "virtualbox" do |vb|
+         vb.memory = "1024"
+      end
+      hans.vm.provision "shell", path: "root_ssh.sh"	
+#      hans.vm.provision "shell", path: "hans.sh"	
+
+      hans.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/insecure_private_key"
+      hans.vm.provision "shell", inline: "chmod 0600 /vagrant/insecure_private_key"
+      hans.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/root/.ssh/id_rsa"
+      hans.vm.provision "shell", inline: "chmod 0600 /root/.ssh/id_rsa"
+      hans.vm.provision "shell", inline: "chown root:root /root/.ssh/id_rsa"
+      hans.vm.provision "hostmanager" do |hostmanager|
+          hostmanager.enabled = true
+          hostmanager.manage_host = true 
+          hostmanager.manage_guest = true 
+          hostmanager.ignore_private_ip = true
+          hostmanager.include_offline = true 
+      end
+
+      hans.vm.provision "ansible_local" do |ansible|
+         ansible.playbook = "playbook.yml"
+         ansible.limit = "all"
+         ansible.verbose = true
+         ansible.install = true
+         ansible.host_vars =  ans_host_var
+         ansible.groups = {
+            "bes" => ans_be_group,
+            "fes" => ans_fe_group
+          }
+      end
+   end
+end
+

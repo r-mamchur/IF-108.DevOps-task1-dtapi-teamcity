@@ -1,0 +1,15 @@
+---
+- name: trivial task - gather_facts for all hosts
+  hosts: all
+  gather_facts: True
+  become: True
+  tasks:
+    - name: ping
+      ping:
+
+- name: HaProxy
+  hosts: hans
+  become: true
+  roles:
+     - role: hans
+          

@@ -1,0 +1,36 @@
+- name: Install Hans
+  yum:
+    name: "{{ util }}"
+  vars:
+    util:
+    - mc
+    - wget
+    - unzip
+    - git
+    - socat
+    - haproxy
+    state: installed
+
+- name: enable and start haproxy server
+  service:
+     name: haproxy.service
+     enabled: yes
+     state: started
+
+- name: haproxy.cfg
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg 
+  notify:
+     - restart haproxy
+
+- name:  server servificate
+  shell: |
+     openssl req -newkey rsa:1024 -nodes -keyout /etc/haproxy/server.key \
+     -out /etc/haproxy/server.crt -x509 -days 365 \
+     -subj "/C=UA/ST=Prykarpattia/L=Ivano-Frankivsk/O=softserve.academy/OU=IF-108.DevOps/CN={{ansible_eth1.ipv4.address}}/emailAddress=r_mamchur@ukr.net"
+
+     cat /etc/haproxy/server.key > /etc/haproxy/server.pem
+     cat /etc/haproxy/server.crt >> /etc/haproxy/server.pem
+  notify:
+    - restart haproxy
+      
+

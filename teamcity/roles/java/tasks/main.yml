@@ -1,0 +1,12 @@
+---
+# This role installs Java and configures $JAVA_HOME.
+
+- name: Install Java
+  yum:
+    name: java-1.8.0-openjdk-devel
+    state: installed
+
+- name: Java_home
+  shell: echo "export JAVA_HOME=$(dirname $(readlink -f $(which java))|sed 's^jre/bin^^')" >/etc/profile.d/java_home.sh
+  when:
+    -  '"/etc/profile.d/java_home.sh" is not exists'

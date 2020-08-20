@@ -1,0 +1,16 @@
+[Unit]
+Description=JetBrains TeamCity agent
+Requires=network.target
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/TeamCity/buildAgent
+PIDFile=/opt/TeamCity/buildAgent/logs/teamcity.pid
+ExecStart=/opt/TeamCity/buildAgent/bin/agent.sh run
+ExecStop=/opt/TeamCity/buildAgent/bin/agent.sh stop force
+User={{teamcity.os_user_name}}
+Group={{teamcity.os_user_name}}
+
+[Install]
+WantedBy=multi-user.target

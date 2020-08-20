@@ -1,0 +1,8 @@
+db:
+  schema:    teamcity
+  user:     camel
+  password: "Passw0rd("
+    
+teamcity:
+   os_user_name: "team55"
+   os_user_password: "Passw0rd("
