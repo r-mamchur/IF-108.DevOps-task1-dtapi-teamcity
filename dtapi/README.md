@@ -1,9 +1,7 @@
-# Task1 - D-tester 
-
-Scheme of our Environment:
-![Scheme](./sheme.png)
-
 # Task 1. HaProxy, LAMP, Vagrant, Ansible, D-Tester
+
+Scheme of our Environment
+![Scheme](./sheme.png)
 
 ### Have been installed and configured by Vagrant, Ansible, Bash.
 ##### `note:` you can scalably count of virtual mashin for Front-end and Back-end via change variable `num_of_be`, `num_of_fe` in Vagrantfile.
