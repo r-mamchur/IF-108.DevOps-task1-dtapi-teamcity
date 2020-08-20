@@ -28,4 +28,5 @@ mysql  Ver 8.0 ( (CentOS/8))
 If you have installed [VirtualBox](https://www.virtualbox.org/). 
 ```  
 Vagrant up
+
 ```  
