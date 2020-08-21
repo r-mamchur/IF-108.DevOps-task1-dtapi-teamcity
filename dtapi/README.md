@@ -17,7 +17,8 @@ mysql  Ver 8.0 ( (CentOS/8))
 ### Front-end 
  - [https://github.com/yurkovskiy/IF-105.UI.dtapi.if.ua.io](https://github.com/yurkovskiy/IF-105.UI.dtapi.if.ua.io)
  - Apache/2.4.6 (CentOS/7)
- - For install without CI/CD server
+ 
+ For install without CI/CD server
  -- Node 12.18.x
  -- Angular CLI: 10.0.6
 ### Balancer
