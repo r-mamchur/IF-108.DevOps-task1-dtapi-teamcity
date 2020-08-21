@@ -19,8 +19,8 @@ mysql  Ver 8.0 ( (CentOS/8))
  - Apache/2.4.6 (CentOS/7)
  
  For install without CI/CD server
- -- Node 12.18.x
- -- Angular CLI: 10.0.6
+ - Node 12.18.x
+ - Angular CLI: 10.0.6
 ### Balancer
 - haproxy 1.5.18
 - Config `https`
