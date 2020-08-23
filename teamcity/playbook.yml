@@ -21,19 +21,19 @@
         file: conf_vars.yml 
 
 - name: deploy postgres
-  hosts: ts
+  hosts: tc
   become: true
   roles:
     - role: pgdb
 
 - name: Java
-  hosts: ts
+  hosts: tc
   become: true
   roles:
     - role: java
 
 - name: TC server
-  hosts: ts
+  hosts: tc
   become: true
   roles:
     - role: tc_server 
